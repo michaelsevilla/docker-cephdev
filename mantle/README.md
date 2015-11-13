@@ -1,52 +1,43 @@
-Provides all the dependencies for building ceph. Assuming the source 
-tree for ceph is in the host machine at `/path/to/cephsrc`, the 
-following will build ceph:
+This image has the Lua dependencies for running Mantle. For more information,
+See the [`Mantle`][mantle] paper for more details.
 
-```bash
-docker run --rm -ti -v /path/to/cephsrc:/ceph ivotron/cephdev-build
-```
+# Quickstart
 
-See the [build](build) entry point script for a list of the commands 
-that get invoked.
+  1. Start a container with an SSH daemon (allows you to point ceph-deploy or
+     teuthology at the container):
 
-# Variables
+    ```bash
+    docker run -d \
+      --name remote0 \
+      --net=host \
+      -e SSHD_PORT=2222 \
+      -e AUTHORIZED_KEYS="`cat ~/.ssh/id_rsa.pub`" \
+      -v /tmp/docker/src/mantle/ceph:/ceph \
+      michaelsevilla/mantledev
+    ```
 
-## Make threads
+  2. Log into the conatainer and start a single node Ceph instance:
 
-The `BUILD_THREADS` environment variable specifies the number passed 
-to `make`'s `-j` flag (defaults to 4).
+    ```bash
+    ssh -p 2222 root@localhost "/standalone.sh"
+    ```
 
-## Configure options
+  3. Inject a balancing policy:
+   
+    ```bash
+    ssh -p 2222 root@localhost "/greedy-spill.sh"
+    ```
 
-The `CEPH_PKGS` environment variable specifies extra packages that 
-Ceph should be compiled with. For example, `CEPH_PKGS="--with-lttng"`
-compiles Ceph with LTTnG. To see a list of options, go to a Ceph repo 
-and run `./configure --help`. 
+  4. Watch the magic happen:
 
-## Building from a specific `SHA1` or `REF`
+    ```bash
+    ssh -p 2222 root@localhost "tail -f /var/log/ceph/ceph-mds.0.log"
+    ```
 
-If the environment variable `SHA1_OR_REF` is given, the source code 
-will be checked out and placed in the container's filesystem. For 
-example:
+# Running experiments
 
-```bash
-docker run \
-  --name infernalis-build \
-  --env SHA1_OR_REF="infernalis" \
-  --env CEPH_PKGS="--with-lttng" \
-  --env BUILD_THREADS=16 \
-  ivotron/cephdev-build
-```
+To bring up a single node Mantle instance, mount the file system, and run 
+metadata test, see our [`infrastructure deploy tools`][infra] git repo. 
 
-The above clones the repo, resets it `infernalis` and compiles the 
-code. A `sha1` can be given too. As mentioned, the above will place 
-the source code inside the container. Alternatively, if the `/ceph` 
-folder is mounted in the container, the `build` script assumes it is 
-holding a ceph's git working directory and doesn't clone it, it just 
-checks out the version specified in `$SHA_OR_REF` (**WARNING**: in 
-order to avoid issues, the script executes `git clean -fd`)
-
-## Custom git URL
-
-The `GIT_URL` variable specifies the repo where the ceph codebase is 
-pulled from. The default value is `https://github.com/ceph/ceph`.
+[mantle]: https://systems.soe.ucsc.edu/node/731
+[infra]: https://github.com/systemslab/infra.git
