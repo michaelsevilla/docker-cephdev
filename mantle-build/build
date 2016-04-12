@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
-
+set -x
 
 if [ -z "$GIT_URL" ] ; then
-  GIT_URL="https://github.com/ceph/ceph"
+  GIT_URL="https://github.com/michaelsevilla/ceph.git"
 fi
 
 if [ -n "$SHA1_OR_REF" ] ; then
@@ -25,6 +25,7 @@ fi
 # build source code if /ceph folder exists
 if [ "$(ls -A /ceph)" ] ; then
   cd /ceph
+
   ./autogen.sh
   ./configure \
     --disable-static --with-debug --with-mantle \
@@ -37,7 +38,13 @@ if [ "$(ls -A /ceph)" ] ; then
     BUILD_THREADS=4
   fi
 
-  exec make -j$BUILD_THREADS
+  make -j$BUILD_THREADS
+  # Try this: https://github.com/ceph/ceph-build/blob/master/ceph-build/build/build_deb
+  # WHERE DO MY DEBS GO???? DEST SAYS TMP!
+  if [ ! -z "$PKG_ARGS" ]; then
+    dpkg-buildpackage -j$BUILD_THREADS $PKG_ARGS
+    #/ceph/make-debs.sh
+  fi
 else
   echo "No /ceph folder found. Either specify a SHA1_OR_REF or put the code there."
   exit 1
