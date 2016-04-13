@@ -39,11 +39,11 @@ if [ "$(ls -A /ceph)" ] ; then
   fi
 
   make -j$BUILD_THREADS
-  # Try this: https://github.com/ceph/ceph-build/blob/master/ceph-build/build/build_deb
-  # WHERE DO MY DEBS GO???? DEST SAYS TMP!
   if [ ! -z "$PKG_ARGS" ]; then
+    rm -r /ceph/debian || true
+    cp -r /debian /ceph/debian
     dpkg-buildpackage -j$BUILD_THREADS $PKG_ARGS
-    #/ceph/make-debs.sh
+    cp ../ceph-customized*.deb ./
   fi
 else
   echo "No /ceph folder found. Either specify a SHA1_OR_REF or put the code there."

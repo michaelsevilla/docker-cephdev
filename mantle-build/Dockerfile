@@ -7,6 +7,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* debian/
 
+ADD debian /debian
 ADD build /
 RUN chmod 755 /build
 ENTRYPOINT ["/build"]

@@ -1,6 +1,6 @@
 Provides all the dependencies for building Mantle. Assuming the source 
 tree for ceph is in the host machine at `/path/to/mantlesrc`, the 
-following will build Mantle:
+following will build Mantle and a `.deb`:
 
 ```bash
 docker run --rm \
@@ -9,16 +9,6 @@ docker run --rm \
   -e BUILD_THREADS=24 \
   -e GIT_URL=https://github.com/michaelsevilla/ceph.git \
   -e SHA1_OR_REF=remotes/origin/cls-lua-mantle-master \
-  michaelsevilla/mantle-build
-```
-
-Then you can build the package:
- 
-```bash
-docker run --rm \
-  --name mantle-pkg \
-  -v /tmp/ceph:/ceph \
-  -e BUILD_THREADS=24 \
   -e PKG_ARGS="-b -nc -us -uc" \
   michaelsevilla/mantle-build
 ```
